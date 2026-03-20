@@ -1,0 +1,50 @@
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.record-item {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.record-item:hover {
+  transform: translateY(-3px);
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.record-header h3 {
+  color: #333;
+  font-size: 20px;
+}
+
+.record-date {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.record-body p {
+  color: #666;
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.record-body strong {
+  color: #333;
+}
