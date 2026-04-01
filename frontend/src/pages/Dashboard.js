@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
+import api from '../services/api';
 
 function Dashboard({ onLogout }) {
   const [user, setUser] = useState(null);
@@ -16,32 +17,9 @@ function Dashboard({ onLogout }) {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      // Get appointments from localStorage
-      const appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-      const currentUser = JSON.parse(localStorage.getItem('user'));
-      
-      // Filter appointments for current user
-      const userAppointments = currentUser?.role === 'patient' 
-        ? appointments.filter(apt => apt.patientId === currentUser.id)
-        : appointments;
-
-      // Calculate stats
-      const today = new Date().toDateString();
-      setStats({
-        totalAppointments: userAppointments.length,
-        todayAppointments: userAppointments.filter(apt => 
-          new Date(apt.date).toDateString() === today
-        ).length,
-        pendingAppointments: userAppointments.filter(apt => apt.status === 'pending').length,
-        completedAppointments: userAppointments.filter(apt => apt.status === 'completed').length
-      });
-
-      // Get upcoming appointments
-      const upcoming = userAppointments
-        .filter(apt => new Date(apt.date) >= new Date() && apt.status !== 'cancelled')
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
-        .slice(0, 5);
-      setUpcomingAppointments(upcoming);
+      const response = await api.get('/dashboard');
+      setStats(response.data.stats);
+      setUpcomingAppointments(response.data.upcomingAppointments);
 
       setLoading(false);
     } catch (error) {

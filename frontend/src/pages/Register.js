@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 function Register({ onLogin }) {
   const [formData, setFormData] = useState({
@@ -26,33 +27,11 @@ function Register({ onLogin }) {
     setLoading(true);
 
     try {
-      // Get existing users from localStorage
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      // Check if email already exists
-      if (users.find(u => u.email === formData.email)) {
-        setError('Email already registered');
-        setLoading(false);
-        return;
-      }
-      
-      // Add new user
-      const newUser = {
-        id: Date.now().toString(),
-        ...formData,
-        createdAt: new Date().toISOString()
-      };
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
-      
-      // Auto login
-      const token = 'token-' + Date.now();
-      const userData = { ...newUser };
-      delete userData.password;
-      onLogin(token, userData);
+      const response = await api.post('/auth/register', formData);
+      onLogin(response.data.token, response.data.user);
       navigate('/dashboard');
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

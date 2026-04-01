@@ -13,15 +13,14 @@ In many hospitals and clinics, appointment scheduling and patient record managem
 
 ## Objective
 
-To develop a cloud-enabled full-stack web application using MERN stack that automates hospital appointment scheduling and securely manages patient medical records with real-time accessibility.
+To develop a cloud-enabled full-stack web application that automates hospital appointment scheduling and securely manages patient medical records with real-time accessibility.
 
 ## Tech Stack
 
 - **Frontend**: React.js
 - **Backend**: Node.js with Express.js
-- **Database**: MongoDB
+- **Database**: PostgreSQL
 - **Authentication**: JWT
-- **Cloud**: MongoDB Atlas
 
 ## Features
 
@@ -33,34 +32,85 @@ To develop a cloud-enabled full-stack web application using MERN stack that auto
 
 ## Installation
 
-### Backend
+### 1. Create PostgreSQL Database
+
+```bash
+createdb hospital_management
+```
+
+### 2. Backend Setup
+
 ```bash
 cd backend
 npm install
-npm start
+copy .env.example .env
 ```
 
-### Frontend
+Edit `.env` and confirm values:
+
+```env
+PORT=5000
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/hospital_management
+JWT_SECRET=replace_with_a_strong_secret
+```
+
+Run database schema and seed:
+
+```bash
+psql -d hospital_management -f db/schema.sql
+psql -d hospital_management -f db/seed.sql
+```
+
+Start backend server:
+
+```bash
+npm run dev
+```
+
+### 3. Frontend Setup
+
 ```bash
 cd frontend
 npm install
 npm start
 ```
 
+## API Endpoints
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/dashboard` (auth required)
+- `GET /api/appointments` (auth required)
+- `POST /api/appointments` (auth required)
+- `GET /api/medical-records` (auth required)
+
+## Sample Credentials
+
+After running `db/seed.sql`:
+
+- Admin: `admin@hospital.com`
+- Doctor: `doctor@hospital.com`
+- Patient: `patient@hospital.com`
+- Password (all): `Password@123`
+
 ## Project Structure
 
 ```
 hospital-management-system/
 ├── backend/
-│   ├── models/
-│   ├── routes/
-│   ├── controllers/
-│   ├── middleware/
-│   └── server.js
+│   ├── db/
+│   │   ├── schema.sql
+│   │   └── seed.sql
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── app.js
+│   │   └── server.js
+│   ├── .env.example
+│   └── package.json
 └── frontend/
-    ├── src/
-    │   ├── components/
-    │   ├── pages/
-    │   └── services/
-    └── public/
+    └── src/pages/
 ```

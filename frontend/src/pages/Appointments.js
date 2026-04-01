@@ -1,29 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Appointments.css';
+import api from '../services/api';
 
 function Appointments({ onLogout }) {
   const [appointments, setAppointments] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     date: '',
     reason: '',
+    doctorId: '',
     doctor: ''
   });
   const navigate = useNavigate();
 
   const fetchAppointments = useCallback(async () => {
     try {
-      const allAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-      const currentUser = JSON.parse(localStorage.getItem('user'));
-      
-      // Filter appointments for current user if patient
-      const userAppointments = currentUser?.role === 'patient' 
-        ? allAppointments.filter(apt => apt.patientId === currentUser.id)
-        : allAppointments;
-        
-      setAppointments(userAppointments);
+      const response = await api.get('/appointments');
+      setAppointments(response.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -31,32 +28,34 @@ function Appointments({ onLogout }) {
     }
   }, []);
 
+  const fetchDoctors = useCallback(async () => {
+    try {
+      const response = await api.get('/users?role=doctor');
+      setDoctors(response.data);
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+    }
+  }, []);
+
   useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('user') || 'null');
+    setUser(userData);
     fetchAppointments();
-  }, [fetchAppointments]);
+    fetchDoctors();
+  }, [fetchAppointments, fetchDoctors]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const currentUser = JSON.parse(localStorage.getItem('user'));
-      const allAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-      
-      const newAppointment = {
-        id: Date.now().toString(),
-        patientId: currentUser.id,
-        patientName: currentUser.name,
+      await api.post('/appointments', {
         date: formData.date,
         reason: formData.reason,
-        doctor: formData.doctor || 'To be assigned',
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      };
-      
-      allAppointments.push(newAppointment);
-      localStorage.setItem('appointments', JSON.stringify(allAppointments));
+        doctorId: formData.doctorId || null,
+        doctor: formData.doctor || null
+      });
       
       setShowModal(false);
-      setFormData({ date: '', reason: '', doctor: '' });
+      setFormData({ date: '', reason: '', doctorId: '', doctor: '' });
       fetchAppointments();
     } catch (error) {
       console.error('Error creating appointment:', error);
@@ -88,17 +87,21 @@ function Appointments({ onLogout }) {
       <div className="dashboard-content">
         <div className="page-header">
           <h1>Appointments</h1>
-          <button onClick={() => setShowModal(true)} className="btn-primary">
-            + Book New Appointment
-          </button>
+          {user?.role === 'patient' && (
+            <button onClick={() => setShowModal(true)} className="btn-primary">
+              + Book New Appointment
+            </button>
+          )}
         </div>
 
         {appointments.length === 0 ? (
           <div className="empty-state-box">
             <p>No appointments found</p>
-            <button onClick={() => setShowModal(true)} className="btn-primary">
-              Book Your First Appointment
-            </button>
+            {user?.role === 'patient' && (
+              <button onClick={() => setShowModal(true)} className="btn-primary">
+                Book Your First Appointment
+              </button>
+            )}
           </div>
         ) : (
           <div className="appointments-grid">
@@ -118,7 +121,7 @@ function Appointments({ onLogout }) {
           </div>
         )}
 
-        {showModal && (
+        {showModal && user?.role === 'patient' && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Book New Appointment</h2>
@@ -144,12 +147,26 @@ function Appointments({ onLogout }) {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Doctor (Optional)</label>
+                  <label>Choose Doctor (Optional)</label>
+                  <select
+                    value={formData.doctorId}
+                    onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
+                  >
+                    <option value="">To be assigned</option>
+                    {doctors.map((doctor) => (
+                      <option key={doctor.id} value={doctor.id}>
+                        {doctor.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Or type Doctor Name</label>
                   <input
                     type="text"
                     value={formData.doctor}
                     onChange={(e) => setFormData({ ...formData, doctor: e.target.value })}
-                    placeholder="Enter doctor name (optional)"
+                    placeholder="Custom doctor name"
                   />
                 </div>
                 <div className="modal-buttons">

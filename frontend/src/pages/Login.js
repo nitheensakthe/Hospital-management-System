@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../services/api';
   
 function Login({ onLogin }) {
   const [formData, setFormData] = useState({
@@ -23,21 +24,11 @@ function Login({ onLogin }) {
     setLoading(true);
 
     try {
-      // Get users from localStorage
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find(u => u.email === formData.email && u.password === formData.password);
-      
-      if (user) {
-        const token = 'token-' + Date.now();
-        const userData = { ...user };
-        delete userData.password; // Don't store password in session
-        onLogin(token, userData);
-        navigate('/dashboard');
-      } else {
-        setError('Invalid email or password');
-      }
+      const response = await api.post('/auth/login', formData);
+      onLogin(response.data.token, response.data.user);
+      navigate('/dashboard');
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
