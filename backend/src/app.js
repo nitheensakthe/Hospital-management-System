@@ -10,9 +10,11 @@ const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-app.use(cors({
-  origin: 'http://localhost:3000'
-}));
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+  : true;
+
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 app.use(morgan('dev'));
 
