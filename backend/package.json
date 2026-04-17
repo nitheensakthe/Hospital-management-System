@@ -4,6 +4,7 @@
   "private": true,
   "main": "src/server.js",
   "scripts": {
+    "build": "node scripts/check-syntax.js",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js"
   },
