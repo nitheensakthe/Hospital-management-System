@@ -1,3 +1,14 @@
-const app = require('../backend/src/app');
+import { Pool } from "pg";
 
-module.exports = app;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+export default async function handler(req, res) {
+  try {
+    const result = await pool.query("SELECT NOW()");
+    res.status(200).json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

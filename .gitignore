@@ -3,3 +3,4 @@ dist/
 backend/.env
 backend/npm-debug.log*
 *.log
+.vercel
