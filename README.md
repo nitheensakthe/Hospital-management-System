@@ -100,6 +100,11 @@ Required environment variables in Render:
 - `CORS_ORIGIN` (your Vercel URL, e.g. `https://your-app.vercel.app`)
 - `DATABASE_SSL` (set `true` if your Postgres requires SSL)
 
+Important: Render will not automatically create tables. After creating the database, run:
+
+- `backend/db/schema.sql`
+- `backend/db/seed.sql` (optional)
+
 Health check endpoint: `GET /api/health`
 
 ### Frontend on Vercel

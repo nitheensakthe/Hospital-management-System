@@ -5,6 +5,11 @@ const pool = require('../config/db');
 async function register(req, res) {
   const { name, email, password, role = 'patient', phone } = req.body;
 
+  if (!process.env.JWT_SECRET) {
+    console.error('JWT_SECRET is not set');
+    return res.status(500).json({ message: 'Server misconfigured' });
+  }
+
   if (!name || !email || !password || !phone) {
     return res.status(400).json({ message: 'Name, email, password, and phone are required' });
   }
@@ -44,6 +49,11 @@ async function register(req, res) {
 
 async function login(req, res) {
   const { email, password } = req.body;
+
+  if (!process.env.JWT_SECRET) {
+    console.error('JWT_SECRET is not set');
+    return res.status(500).json({ message: 'Server misconfigured' });
+  }
 
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password are required' });

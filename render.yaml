@@ -1,3 +1,7 @@
+databases:
+  - name: hospital-db
+    plan: free
+
 services:
   - type: web
     name: hospital-backend
@@ -14,7 +18,9 @@ services:
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: hospital-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGIN
