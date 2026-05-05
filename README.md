@@ -116,6 +116,8 @@ Set this env var in Vercel (Project Settings → Environment Variables):
 
 - `REACT_APP_API_BASE_URL` = `https://<your-render-service>.onrender.com/api`
 
+If `REACT_APP_API_BASE_URL` is not set, the frontend may accidentally POST to the Vercel domain (e.g. `/api/auth/login`) and you can see `405 Method Not Allowed`.
+
 Then deploy as usual.
 
 ## API Endpoints
