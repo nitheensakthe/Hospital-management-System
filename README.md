@@ -114,9 +114,11 @@ SPA routing is handled by `frontend/vercel.json`.
 
 Set this env var in Vercel (Project Settings → Environment Variables):
 
-- `REACT_APP_API_BASE_URL` = `https://<your-render-service>.onrender.com/api`
+- `BACKEND_ORIGIN` = `https://<your-render-service>.onrender.com`
 
-If `REACT_APP_API_BASE_URL` is not set, the frontend may accidentally POST to the Vercel domain (e.g. `/api/auth/login`) and you can see `405 Method Not Allowed`.
+Optional (if you want the browser to call Render directly instead of using the Vercel proxy):
+
+- `REACT_APP_API_BASE_URL` = `https://<your-render-service>.onrender.com/api`
 
 Then deploy as usual.
 
