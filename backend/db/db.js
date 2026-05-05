@@ -1,8 +1,12 @@
 const { Pool } = require("pg");
 require("dotenv").config();
 
+const connectionString = process.env.DATABASE_URL;
+const useSsl = connectionString && connectionString.includes("neon.tech");
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
+  ssl: useSsl ? { rejectUnauthorized: false } : false,
 });
 
 // ✅ Single clean connection test

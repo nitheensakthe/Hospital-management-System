@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MedicalRecords.css';
 import api from '../services/api';
@@ -11,6 +11,10 @@ function MedicalRecords({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [success, setSuccess] = useState('');
+  const firstFieldRef = useRef(null);
   const [formData, setFormData] = useState({
     patientId: '',
     doctorId: '',
@@ -20,6 +24,12 @@ function MedicalRecords({ onLogout }) {
     date: ''
   });
   const navigate = useNavigate();
+
+  const CHARACTER_LIMITS = {
+    diagnosis: 500,
+    prescription: 500,
+    notes: 1000
+  };
 
   const fetchRecords = useCallback(async () => {
     try {
@@ -34,6 +44,7 @@ function MedicalRecords({ onLogout }) {
 
   const fetchUsersForRecord = useCallback(async () => {
     try {
+      setLoadingUsers(true);
       const [patientResponse, doctorResponse] = await Promise.all([
         api.get('/users?role=patient'),
         api.get('/users?role=doctor')
@@ -42,6 +53,8 @@ function MedicalRecords({ onLogout }) {
       setDoctors(doctorResponse.data);
     } catch (fetchError) {
       console.error('Error fetching users for records:', fetchError);
+    } finally {
+      setLoadingUsers(false);
     }
   }, []);
 
@@ -49,14 +62,44 @@ function MedicalRecords({ onLogout }) {
     const userData = JSON.parse(localStorage.getItem('user') || 'null');
     setUser(userData);
     fetchRecords();
-    if (userData?.role === 'doctor' || userData?.role === 'admin') {
+  }, [fetchRecords]);
+
+  // Fetch patients and doctors when modal opens
+  useEffect(() => {
+    if (showModal && (user?.role === 'doctor' || user?.role === 'admin')) {
       fetchUsersForRecord();
+      // Auto-focus to first field after modal opens
+      setTimeout(() => {
+        if (firstFieldRef.current) {
+          firstFieldRef.current.focus();
+        }
+      }, 100);
     }
-  }, [fetchRecords, fetchUsersForRecord]);
+  }, [showModal, user?.role, fetchUsersForRecord]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Validation before submit
+    if (!formData.patientId) {
+      setError('Please select a patient');
+      return;
+    }
+    if (user?.role === 'admin' && !formData.doctorId) {
+      setError('Please select a doctor');
+      return;
+    }
+    if (!formData.diagnosis.trim()) {
+      setError('Diagnosis is required');
+      return;
+    }
+    if (!formData.prescription.trim()) {
+      setError('Prescription is required');
+      return;
+    }
+
+    setSubmitting(true);
 
     try {
       await api.post('/medical-records', {
@@ -67,6 +110,7 @@ function MedicalRecords({ onLogout }) {
         notes: formData.notes,
         date: formData.date || undefined
       });
+      setSuccess('Medical record saved successfully!');
       setShowModal(false);
       setFormData({
         patientId: '',
@@ -76,9 +120,13 @@ function MedicalRecords({ onLogout }) {
         notes: '',
         date: ''
       });
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
       fetchRecords();
     } catch (submitError) {
       setError(submitError.response?.data?.message || 'Failed to create medical record');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -117,6 +165,11 @@ function MedicalRecords({ onLogout }) {
           <div className="empty-state-box">
             <p>No medical records found</p>
             <p style={{ fontSize: '14px', color: '#999' }}>Medical records will appear here after appointments</p>
+            {(user?.role === 'doctor' || user?.role === 'admin') && (
+              <button onClick={() => setShowModal(true)} className="btn-primary" style={{ marginTop: '16px' }}>
+                + Add Medical Record
+              </button>
+            )}
           </div>
         ) : (
           <div className="records-list">
@@ -144,15 +197,21 @@ function MedicalRecords({ onLogout }) {
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Add Medical Record</h2>
               {error && <div className="error-message">{error}</div>}
+              {success && <div className="success-message">{success}</div>}
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
                   <label>Patient</label>
                   <select
+                    ref={firstFieldRef}
                     value={formData.patientId}
-                    onChange={(e) => setFormData({ ...formData, patientId: e.target.value })}
+                    onChange={(e) => {
+                      setError('');
+                      setFormData({ ...formData, patientId: e.target.value });
+                    }}
+                    disabled={loadingUsers}
                     required
                   >
-                    <option value="">Select patient</option>
+                    <option value="">{loadingUsers ? 'Loading patients...' : 'Select patient'}</option>
                     {patients.map((patient) => (
                       <option key={patient.id} value={patient.id}>{patient.name}</option>
                     ))}
@@ -164,10 +223,14 @@ function MedicalRecords({ onLogout }) {
                     <label>Doctor</label>
                     <select
                       value={formData.doctorId}
-                      onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
+                      onChange={(e) => {
+                        setError('');
+                        setFormData({ ...formData, doctorId: e.target.value });
+                      }}
+                      disabled={loadingUsers}
                       required
                     >
-                      <option value="">Select doctor</option>
+                      <option value="">{loadingUsers ? 'Loading doctors...' : 'Select doctor'}</option>
                       {doctors.map((doctor) => (
                         <option key={doctor.id} value={doctor.id}>{doctor.name}</option>
                       ))}
@@ -176,31 +239,52 @@ function MedicalRecords({ onLogout }) {
                 )}
 
                 <div className="form-group">
-                  <label>Diagnosis</label>
-                  <input
-                    type="text"
+                  <label>Diagnosis ({formData.diagnosis.length}/{CHARACTER_LIMITS.diagnosis})</label>
+                  <textarea
                     value={formData.diagnosis}
-                    onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
+                    onChange={(e) => {
+                      setError('');
+                      if (e.target.value.length <= CHARACTER_LIMITS.diagnosis) {
+                        setFormData({ ...formData, diagnosis: e.target.value });
+                      }
+                    }}
+                    placeholder="Enter diagnosis"
+                    maxLength={CHARACTER_LIMITS.diagnosis}
                     required
+                    rows={3}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Prescription</label>
-                  <input
-                    type="text"
+                  <label>Prescription ({formData.prescription.length}/{CHARACTER_LIMITS.prescription})</label>
+                  <textarea
                     value={formData.prescription}
-                    onChange={(e) => setFormData({ ...formData, prescription: e.target.value })}
+                    onChange={(e) => {
+                      setError('');
+                      if (e.target.value.length <= CHARACTER_LIMITS.prescription) {
+                        setFormData({ ...formData, prescription: e.target.value });
+                      }
+                    }}
+                    placeholder="Enter prescription"
+                    maxLength={CHARACTER_LIMITS.prescription}
                     required
+                    rows={3}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Notes</label>
-                  <input
-                    type="text"
+                  <label>Notes ({formData.notes.length}/{CHARACTER_LIMITS.notes})</label>
+                  <textarea
                     value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    onChange={(e) => {
+                      setError('');
+                      if (e.target.value.length <= CHARACTER_LIMITS.notes) {
+                        setFormData({ ...formData, notes: e.target.value });
+                      }
+                    }}
+                    placeholder="Optional notes"
+                    maxLength={CHARACTER_LIMITS.notes}
+                    rows={3}
                   />
                 </div>
 
@@ -209,7 +293,11 @@ function MedicalRecords({ onLogout }) {
                   <input
                     type="date"
                     value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    onChange={(e) => {
+                      setError('');
+                      setFormData({ ...formData, date: e.target.value });
+                    }}
+                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
 
@@ -217,8 +305,8 @@ function MedicalRecords({ onLogout }) {
                   <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">
                     Cancel
                   </button>
-                  <button type="submit" className="btn-primary">
-                    Save Record
+                  <button type="submit" className="btn-primary" disabled={submitting}>
+                    {submitting ? 'Saving...' : 'Save Record'}
                   </button>
                 </div>
               </form>

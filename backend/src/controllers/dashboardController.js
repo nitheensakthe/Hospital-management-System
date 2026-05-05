@@ -5,33 +5,33 @@ async function getDashboard(req, res) {
   try {
     const appointmentsResult = req.user.role === 'patient'
       ? await pool.query(
-          `SELECT id, date, reason,
+          `SELECT a.id, a.date, a.reason,
                   COALESCE(d.name, a.doctor_name, 'To be assigned') AS doctor,
-                  status
+                  a.status
            FROM appointments a
            LEFT JOIN users d ON d.id = a.doctor_id
-           WHERE patient_id = $1
-           ORDER BY date ASC`,
+           WHERE a.patient_id = $1
+           ORDER BY a.date ASC`,
           [req.user.id]
         )
       : req.user.role === 'doctor'
       ? await pool.query(
-          `SELECT id, date, reason,
+          `SELECT a.id, a.date, a.reason,
                   COALESCE(d.name, a.doctor_name, 'To be assigned') AS doctor,
-                  status
+                  a.status
            FROM appointments a
            LEFT JOIN users d ON d.id = a.doctor_id
-           WHERE doctor_id = $1
-           ORDER BY date ASC`,
+           WHERE a.doctor_id = $1
+           ORDER BY a.date ASC`,
           [req.user.id]
         )
       : await pool.query(
-          `SELECT id, date, reason,
+          `SELECT a.id, a.date, a.reason,
                   COALESCE(d.name, a.doctor_name, 'To be assigned') AS doctor,
-                  status
+                  a.status
            FROM appointments a
            LEFT JOIN users d ON d.id = a.doctor_id
-           ORDER BY date ASC`
+           ORDER BY a.date ASC`
         );
 
     const appointments = appointmentsResult.rows;
