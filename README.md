@@ -112,11 +112,9 @@ Deploy the React app as a separate Vercel project with:
 
 SPA routing is handled by `frontend/vercel.json`.
 
-Set this env var in Vercel (Project Settings → Environment Variables):
+`frontend/vercel.json` also rewrites `/api/*` to the Render backend.
 
-- `BACKEND_ORIGIN` = `https://<your-render-service>.onrender.com`
-
-Optional (if you want the browser to call Render directly instead of using the Vercel proxy):
+Optional (if you want the browser to call Render directly instead of using the Vercel rewrite):
 
 - `REACT_APP_API_BASE_URL` = `https://<your-render-service>.onrender.com/api`
 
