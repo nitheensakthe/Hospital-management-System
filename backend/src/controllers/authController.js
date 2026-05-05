@@ -43,7 +43,15 @@ async function register(req, res) {
     return res.status(201).json({ token, user });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Registration failed' });
+    if (error && error.code === '42P01') {
+      return res.status(500).json({ message: 'Database schema not initialized' });
+    }
+
+    const exposeErrors = String(process.env.EXPOSE_ERRORS || '').toLowerCase() === 'true';
+    return res.status(500).json({
+      message: 'Registration failed',
+      ...(exposeErrors ? { error: error.message } : {})
+    });
   }
 }
 
@@ -87,7 +95,15 @@ async function login(req, res) {
     return res.json({ token, user });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Login failed' });
+    if (error && error.code === '42P01') {
+      return res.status(500).json({ message: 'Database schema not initialized' });
+    }
+
+    const exposeErrors = String(process.env.EXPOSE_ERRORS || '').toLowerCase() === 'true';
+    return res.status(500).json({
+      message: 'Login failed',
+      ...(exposeErrors ? { error: error.message } : {})
+    });
   }
 }
 
