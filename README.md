@@ -113,6 +113,11 @@ Debug tip (optional): set `EXPOSE_ERRORS=true` on the Render backend temporarily
 
 Health check endpoint: `GET /api/health`
 
+The health response also reports database/schema status:
+
+- `db: "ok"` means the backend can connect to Postgres
+- `tables.users: true` means `schema.sql` has been applied
+
 ### Frontend on Vercel
 
 Deploy the React app as a separate Vercel project with:
