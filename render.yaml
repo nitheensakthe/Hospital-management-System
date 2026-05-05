@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: hospital-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install; npm run build
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
+      - key: DATABASE_SSL
+        value: true

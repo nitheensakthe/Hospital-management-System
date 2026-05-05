@@ -52,6 +52,10 @@ Edit `.env` and confirm values:
 PORT=5000
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/hospital_management
 JWT_SECRET=replace_with_a_strong_secret
+#+ Optional (comma-separated):
+#CORS_ORIGIN=http://localhost:3000,https://your-app.vercel.app
+# Optional for hosted Postgres that requires SSL:
+#DATABASE_SSL=true
 ```
 
 Run database schema and seed:
@@ -74,6 +78,39 @@ cd frontend
 npm install
 npm start
 ```
+
+## Deployment
+
+This repo is set up to deploy:
+
+- Frontend (React) on Vercel
+- Backend (Express API) on Render
+
+### Backend on Render
+
+- Blueprint file: `render.yaml` (root)
+- Render service root directory: `backend`
+- Build command: `npm install; npm run build`
+- Start command: `npm start`
+
+Required environment variables in Render:
+
+- `DATABASE_URL` (your hosted Postgres connection string)
+- `JWT_SECRET` (a strong secret)
+- `CORS_ORIGIN` (your Vercel URL, e.g. `https://your-app.vercel.app`)
+- `DATABASE_SSL` (set `true` if your Postgres requires SSL)
+
+Health check endpoint: `GET /api/health`
+
+### Frontend on Vercel
+
+`vercel.json` is configured to build the CRA app from `frontend/`.
+
+Set this env var in Vercel (Project Settings → Environment Variables):
+
+- `REACT_APP_API_BASE_URL` = `https://<your-render-service>.onrender.com/api`
+
+Then deploy as usual.
 
 ## API Endpoints
 

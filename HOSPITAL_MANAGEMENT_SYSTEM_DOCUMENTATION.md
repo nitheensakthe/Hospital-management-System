@@ -47,15 +47,19 @@ The problem the project is trying to solve is the common mismatch between patien
 
 ### Deployment / Hosting
 
-- `vercel.json` configures frontend and backend entry points for Vercel-style deployment
+- Frontend is intended to deploy on Vercel.
+- Backend is intended to deploy on Render.
+- `vercel.json` builds the React app from `frontend/` (SPA routing included).
+- `render.yaml` configures the backend service from `backend/`.
 
 ## Repository Layout
 
 ### Root
 
 - `README.md` contains a short project summary and setup instructions
-- `vercel.json` defines deployment routing
-- `api/index.js` provides a serverless-style database test endpoint
+- `vercel.json` defines a frontend-only Vercel deployment
+- `render.yaml` defines a backend Render deployment
+- `api/index.js` is legacy and is not required for the Vercel + Render split
 
 ### Backend
 
