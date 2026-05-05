@@ -27,3 +27,5 @@ services:
         sync: false
       - key: DATABASE_SSL
         value: true
+      - key: RUN_DB_INIT
+        value: true

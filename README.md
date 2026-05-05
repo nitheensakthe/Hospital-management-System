@@ -107,6 +107,8 @@ Important: Render will not automatically create tables. After creating the datab
 
 If you see `500 {"message":"Database schema not initialized"}` from auth endpoints, it means the SQL schema has not been applied yet.
 
+If you deploy using `render.yaml`, the backend sets `RUN_DB_INIT=true` by default and will apply `backend/db/schema.sql` on startup (idempotent `CREATE TABLE IF NOT EXISTS`). You can disable it by setting `RUN_DB_INIT=false`.
+
 Debug tip (optional): set `EXPOSE_ERRORS=true` on the Render backend temporarily to include `error` details in 500 responses.
 
 Health check endpoint: `GET /api/health`
