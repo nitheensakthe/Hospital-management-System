@@ -104,7 +104,13 @@ Health check endpoint: `GET /api/health`
 
 ### Frontend on Vercel
 
-`vercel.json` is configured to build the CRA app from `frontend/`.
+Deploy the React app as a separate Vercel project with:
+
+- Root Directory: `frontend`
+- Framework Preset: Create React App (auto-detected)
+- Output Directory: `build` (default for CRA)
+
+SPA routing is handled by `frontend/vercel.json`.
 
 Set this env var in Vercel (Project Settings → Environment Variables):
 
