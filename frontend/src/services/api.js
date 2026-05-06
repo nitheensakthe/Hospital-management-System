@@ -1,6 +1,13 @@
 import axios from 'axios';
 
-const envBaseUrl = process.env.REACT_APP_API_BASE_URL;
+function normalizeApiBaseUrl(value) {
+  if (!value) return undefined;
+  const trimmed = String(value).trim().replace(/\/+$/, '');
+  if (!trimmed) return undefined;
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+}
+
+const envBaseUrl = normalizeApiBaseUrl(process.env.REACT_APP_API_BASE_URL);
 const isProd = process.env.NODE_ENV === 'production';
 
 const api = axios.create({
