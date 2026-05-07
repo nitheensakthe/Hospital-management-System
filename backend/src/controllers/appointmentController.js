@@ -57,11 +57,9 @@ async function createAppointment(req, res) {
         'SELECT id, name FROM users WHERE id = $1 AND role = $2',
         [doctorId, 'doctor']
       );
-
       if (doctorResult.rows.length === 0) {
         return res.status(400).json({ message: 'Invalid doctor selected' });
       }
-
       assignedDoctorId = doctorResult.rows[0].id;
     }
 
@@ -73,13 +71,23 @@ async function createAppointment(req, res) {
     );
 
     const created = result.rows[0];
-    const doctorResult = assignedDoctorId
+    const doctorRow = assignedDoctorId
       ? await pool.query('SELECT name FROM users WHERE id = $1', [assignedDoctorId])
       : { rows: [] };
 
+    // Notify the assigned doctor
+    if (assignedDoctorId) {
+      await pool.query(
+        `INSERT INTO notifications (user_id, title, message, type)
+         VALUES ($1, $2, $3, 'appointment')`,
+        [assignedDoctorId, 'New Appointment Request',
+         `A new appointment has been booked for ${new Date(date).toLocaleDateString()}: "${reason}"`]
+      );
+    }
+
     return res.status(201).json({
       ...created,
-      doctor: doctorResult.rows[0]?.name || created.doctor_name || 'To be assigned'
+      doctor: doctorRow.rows[0]?.name || created.doctor_name || 'To be assigned'
     });
   } catch (error) {
     console.error(error);
@@ -87,7 +95,57 @@ async function createAppointment(req, res) {
   }
 }
 
-module.exports = {
-  getAppointments,
-  createAppointment
-};
+async function updateAppointmentStatus(req, res) {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const allowed = ['confirmed', 'completed', 'cancelled'];
+  if (!allowed.includes(status)) {
+    return res.status(400).json({ message: `Status must be one of: ${allowed.join(', ')}` });
+  }
+
+  try {
+    // Fetch appointment
+    const apptResult = await pool.query(
+      `SELECT a.*, u.name AS "patientName", u.id AS "patientUserId"
+       FROM appointments a
+       JOIN users u ON u.id = a.patient_id
+       WHERE a.id = $1`,
+      [id]
+    );
+
+    if (apptResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    const appt = apptResult.rows[0];
+
+    // Doctors can only update their own appointments
+    if (req.user.role === 'doctor' && appt.doctor_id !== req.user.id) {
+      return res.status(403).json({ message: 'You can only update your own appointments' });
+    }
+
+    const updated = await pool.query(
+      `UPDATE appointments SET status = $1 WHERE id = $2
+       RETURNING id, patient_id AS "patientId", date, reason, status`,
+      [status, id]
+    );
+
+    // Notify the patient
+    const statusLabels = { confirmed: 'Confirmed ✅', completed: 'Completed 🏁', cancelled: 'Cancelled ❌' };
+    await pool.query(
+      `INSERT INTO notifications (user_id, title, message, type)
+       VALUES ($1, $2, $3, 'appointment')`,
+      [appt.patientUserId,
+       `Appointment ${statusLabels[status]}`,
+       `Your appointment on ${new Date(appt.date).toLocaleDateString()} has been ${status}.`]
+    );
+
+    return res.json(updated.rows[0]);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Failed to update appointment status' });
+  }
+}
+
+module.exports = { getAppointments, createAppointment, updateAppointmentStatus };

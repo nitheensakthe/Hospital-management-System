@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 
+const notificationRoutes = require('./routes/notificationRoutes');
+const profileRoutes      = require('./routes/profileRoutes');
 const authRoutes = require('./routes/authRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const medicalRecordRoutes = require('./routes/medicalRecordRoutes');
@@ -55,7 +57,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/medical-records', medicalRecordRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/users',         userRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/profile',       profileRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
