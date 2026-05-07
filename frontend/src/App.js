@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Appointments from './pages/Appointments';
 import MedicalRecords from './pages/MedicalRecords';
+import Profile from './pages/Profile';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -40,6 +41,9 @@ function App() {
           } />
           <Route path="/records" element={
             isAuthenticated ? <MedicalRecords onLogout={handleLogout} /> : <Navigate to="/login" />
+          } />
+          <Route path="/profile" element={
+            isAuthenticated ? <Profile onLogout={handleLogout} /> : <Navigate to="/login" />
           } />
           <Route path="/" element={<Navigate to="/login" />} />
         </Routes>

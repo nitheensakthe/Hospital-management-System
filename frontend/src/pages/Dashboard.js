@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
+import Navbar from '../components/Navbar';
 import api from '../services/api';
 
 /* ── Live Clock ── */
@@ -145,8 +146,6 @@ function Dashboard({ onLogout }) {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  const handleLogout = () => { onLogout(); navigate('/login'); };
-
   if (loading) return <div className="loading">Loading dashboard…</div>;
 
   /* Derived */
@@ -172,15 +171,7 @@ function Dashboard({ onLogout }) {
   return (
     <div className="dashboard">
       {/* ── Navbar ── */}
-      <nav className="navbar">
-        <div className="navbar-brand">🏥 MediCare HMS</div>
-        <div className="navbar-menu">
-          <button onClick={() => navigate('/dashboard')}    className="nav-link active">Dashboard</button>
-          <button onClick={() => navigate('/appointments')} className="nav-link">Appointments</button>
-          <button onClick={() => navigate('/records')}      className="nav-link">Medical Records</button>
-          <button onClick={handleLogout}                    className="nav-link logout">Logout</button>
-        </div>
-      </nav>
+      <Navbar onLogout={onLogout} />
 
       <div className="dashboard-content">
 
@@ -290,6 +281,12 @@ function Dashboard({ onLogout }) {
                   desc="Access patient health records"
                   color="#06b6d4"
                   onClick={() => navigate('/records')}
+                />
+                <ActionCard
+                  icon="👤" title="My Profile"
+                  desc="Edit your personal information"
+                  color="#7c3aed"
+                  onClick={() => navigate('/profile')}
                 />
                 <ActionCard
                   icon="↻" title="Refresh Data"

@@ -738,3 +738,43 @@
   .ap-tab { padding: 7px 12px; font-size: 12px; }
   .ap-detail-chips { grid-template-columns: 1fr; }
 }
+
+/* ── Status action buttons (doctor/admin) ── */
+.ap-status-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.ap-status-actions-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+}
+
+.ap-status-btn {
+  padding: 7px 16px;
+  border: 1.5px solid var(--btn-color);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--btn-color) 8%, white);
+  color: var(--btn-color);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ap-status-btn:hover {
+  background: var(--btn-color);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--btn-color) 35%, transparent);
+}

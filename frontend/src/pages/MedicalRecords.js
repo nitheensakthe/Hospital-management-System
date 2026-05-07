@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import './MedicalRecords.css';
+import Navbar from '../components/Navbar';
 import api from '../services/api';
 
 const CHARACTER_LIMITS = { diagnosis: 500, prescription: 500, notes: 1000 };
@@ -116,7 +116,6 @@ function MedicalRecords({ onLogout }) {
   const [expandedId, setExpandedId] = useState(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const firstFieldRef = useRef(null);
-  const navigate = useNavigate();
 
   const fetchRecords = useCallback(async () => {
     try {
@@ -185,8 +184,6 @@ function MedicalRecords({ onLogout }) {
     }
   };
 
-  const handleLogout = () => { onLogout(); navigate('/login'); };
-
   // Derived stats
   const uniquePatients = new Set(records.map(r => r.patientName)).size;
   const uniqueDoctors  = new Set(records.map(r => r.doctor).filter(Boolean)).size;
@@ -211,15 +208,7 @@ function MedicalRecords({ onLogout }) {
 
   return (
     <div className="dashboard">
-      <nav className="navbar">
-        <div className="navbar-brand">🏥 MediCare HMS</div>
-        <div className="navbar-menu">
-          <button onClick={() => navigate('/dashboard')} className="nav-link">Dashboard</button>
-          <button onClick={() => navigate('/appointments')} className="nav-link">Appointments</button>
-          <button onClick={() => navigate('/records')} className="nav-link active">Medical Records</button>
-          <button onClick={handleLogout} className="nav-link logout">Logout</button>
-        </div>
-      </nav>
+      <Navbar onLogout={onLogout} />
 
       <div className="dashboard-content">
 
